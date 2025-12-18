@@ -6,20 +6,20 @@ interface UserDeleteProps {
 }
 
 const UserDelete: React.FC<UserDeleteProps> = ({ onDeleteSuccess }) => {
-  const [deleteDeviceId, setDeleteDeviceId] = useState<number | null>(null);
+  const [deleteDeviceId, setDeleteDeviceId] = useState<number | "">("");
   const [fromDate, setFromDate] = useState("");
   const [toDate, setToDate] = useState("");
   const [deleteStatus, setDeleteStatus] = useState<string | null>(null);
 
   const handleDeleteInRange = async () => {
-    if (!deleteDeviceId || !fromDate || !toDate) {
+    if (deleteDeviceId === "" || !fromDate || !toDate) {
       setDeleteStatus("Wypełnij wszystkie pola");
       return;
     }
 
     try {
       const res = await fetch(
-        `http://localhost:3100/api/data/${deleteDeviceId}/range`,
+        `http://localhost:3100/api/room/${deleteDeviceId}/range`,
         {
           method: "DELETE",
           headers: {
@@ -31,9 +31,15 @@ const UserDelete: React.FC<UserDeleteProps> = ({ onDeleteSuccess }) => {
       );
 
       if (!res.ok) {
-        const errorData = await res.json();
-        setDeleteStatus(`Błąd: ${errorData.message || res.statusText}`);
+        try {
+          const errorData = await res.json();
+          setDeleteStatus(`Błąd: ${errorData.message || res.statusText}`);
+        } catch {
+          // Jeśli nie da się sparsować JSON (np. zwrócono HTML), pokaż status
+          setDeleteStatus(`Błąd: ${res.statusText}`);
+        }
       } else {
+        const data = await res.json();
         setDeleteStatus("Pomyślnie usunięto dane");
         if (onDeleteSuccess) onDeleteSuccess();
       }
@@ -53,17 +59,17 @@ const UserDelete: React.FC<UserDeleteProps> = ({ onDeleteSuccess }) => {
       }}
     >
       <Typography variant="h6" gutterBottom>
-        Usuń odczyty z urządzenia (przedział czasowy)
+        Usuń historię <br></br> (w danym przedziale czasowym)
       </Typography>
 
       <Stack spacing={2}>
         <input
           type="number"
           placeholder="ID urządzenia"
-          value={deleteDeviceId ?? ""}
-          onChange={(e) => setDeleteDeviceId(Number(e.target.value))}
+          value={deleteDeviceId === "" ? "" : deleteDeviceId}
+          onChange={(e) => setDeleteDeviceId(e.target.value === "" ? "" : Number(e.target.value))}
           min={0}
-          max={16}
+          max={21}
           style={{
             padding: "8px",
             borderRadius: 4,
@@ -106,7 +112,7 @@ const UserDelete: React.FC<UserDeleteProps> = ({ onDeleteSuccess }) => {
           onClick={handleDeleteInRange}
           style={{
             padding: "10px",
-            backgroundColor: "#d32f2f",
+            backgroundColor: "#2e7d32",
             color: "white",
             border: "none",
             borderRadius: 4,

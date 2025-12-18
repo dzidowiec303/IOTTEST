@@ -9,7 +9,7 @@ import MenuIcon from "@mui/icons-material/Menu";
 import Container from "@mui/material/Container";
 import Button from "@mui/material/Button";
 import MenuItem from "@mui/material/MenuItem";
-import LanguageIcon from "@mui/icons-material/Language";
+import HomeIcon from "@mui/icons-material/Home";
 
 import { isExpired } from "react-jwt";
 import { useNavigate } from "react-router-dom";
@@ -58,7 +58,7 @@ function Navbar() {
               textDecoration: "none",
             }}
           >
-            <LanguageIcon sx={{ display: { xs: "none", md: "flex" }, mr: 1 }} />
+            <HomeIcon sx={{ display: { xs: "none", md: "flex" }, mr: 1 }} />
             Smart Home
           </Typography>
 

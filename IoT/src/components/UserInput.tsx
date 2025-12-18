@@ -4,34 +4,27 @@ import {
   Typography,
   Stack,
   Button,
-  MenuItem,
-  Select,
 } from "@mui/material";
-import type { SelectChangeEvent } from "@mui/material";
 
 interface UserInputProps {
-  roomId?: number;
+  roomId: number;
   onSuccess: () => void;
 }
 
 const UserInput: React.FC<UserInputProps> = ({
-  roomId: initialRoomId,
+  roomId,
   onSuccess,
 }) => {
-  const [roomId, setRoomId] = useState<number | "">(initialRoomId ?? "");
   const [temperature, setTemperature] = useState("");
   const [humidity, setHumidity] = useState("");
   const [brightness, setBrightness] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
-
-  const roomOptions = Array.from({ length: 17 }, (_, i) => i);
   const token = localStorage.getItem("token");
   const userId = localStorage.getItem("userId");
 
   const handleSubmit = async () => {
     if (
-      roomId === "" ||
       temperature.trim() === "" ||
       brightness.trim() === "" ||
       humidity.trim() === ""
@@ -108,11 +101,6 @@ const UserInput: React.FC<UserInputProps> = ({
     }
   };
 
-  const handleRoomChange = (event: SelectChangeEvent) => {
-    const value = event.target.value;
-    setRoomId(value === "" ? "" : Number(value));
-  };
-
   return (
     <Box
       sx={{
@@ -128,28 +116,21 @@ const UserInput: React.FC<UserInputProps> = ({
       </Typography>
 
       <Stack spacing={2}>
-        <Select
-          value={roomId === "" ? "" : roomId.toString()}
-          onChange={handleRoomChange}
-          displayEmpty
-          sx={{
-            backgroundColor: "#444",
-            borderRadius: 1,
+        <input
+          type="number"
+          placeholder="ID pokoju"
+          value={roomId}
+          readOnly
+          style={{
+            padding: "8px",
+            borderRadius: 4,
+            border: "none",
+            width: "100%",
+            backgroundColor: "#333",
             color: "white",
-            "& .MuiSelect-icon": { color: "white" },
-            "& fieldset": { border: "none" },
+            cursor: "not-allowed",
           }}
-          inputProps={{ "aria-label": "Wybierz pokój" }}
-        >
-          <MenuItem value="" disabled>
-            Wybierz ID pokoju
-          </MenuItem>
-          {roomOptions.map((id) => (
-            <MenuItem key={id} value={id.toString()}>
-              Pokój {id}
-            </MenuItem>
-          ))}
-        </Select>
+        />
 
         <input
           type="number"
@@ -198,7 +179,7 @@ const UserInput: React.FC<UserInputProps> = ({
 
         <Button
           variant="contained"
-          color="error"
+          color="success"
           onClick={handleSubmit}
           disabled={loading}
           sx={{ borderRadius: 2 }}

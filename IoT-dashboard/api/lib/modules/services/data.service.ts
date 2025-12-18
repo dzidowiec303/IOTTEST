@@ -14,7 +14,7 @@ export default class RoomService {
 
   public async queryByRoomId(roomId: number) {
     try {
-      const data = await RoomModel.find({ roomId });
+      const data = await RoomModel.find({ roomId }).populate('userId');
       return data;
     } catch (error) {
       throw new Error(`Query failed: ${error}`);
@@ -24,6 +24,7 @@ export default class RoomService {
   public async getLatestByRoomId(roomId: number) {
     try {
       const latestEntry = await RoomModel.find({ roomId })
+        .populate('userId')
         .limit(1)
         .sort({ readingDate: -1 });
       return latestEntry.length ? latestEntry[0] : null;
@@ -39,6 +40,7 @@ export default class RoomService {
         Array.from({ length: supportedRoomsNum }, async (_, i) => {
           try {
             const latestEntry = await RoomModel.find({ roomId: i })
+              .populate('userId')
               .limit(1)
               .sort({ readingDate: -1 });
             if (latestEntry.length) {
@@ -90,8 +92,18 @@ export default class RoomService {
         readingDate: { $gte: since },
       }
     )
+      .populate('userId')
       .sort({ readingDate: 1 })
       .lean();
+  }
+
+  public async getDistinctRoomIds() {
+    try {
+      const distinctRoomIds = await RoomModel.distinct("roomId");
+      return distinctRoomIds.sort((a, b) => a - b);
+    } catch (error) {
+      throw new Error(`Get distinct room IDs failed: ${error}`);
+    }
   }
 
 }

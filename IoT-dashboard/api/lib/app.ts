@@ -54,6 +54,14 @@ class App {
             this.app.use('/', controller.router);
         });
 
+        // 404 handler - musi być przed error handlerem
+        this.app.use((req: express.Request, res: express.Response) => {
+            res.status(404).json({
+                error: 'Not Found',
+                message: 'The requested resource was not found',
+            });
+        });
+
         // Error handler - musi być na końcu
         this.app.use((err: any, req: express.Request, res: express.Response, next: express.NextFunction) => {
             console.error('Error:', err);

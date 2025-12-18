@@ -18,6 +18,12 @@ class RoomController implements Controller {
 
   private initializeRoutes() {
     this.router.get(
+      `${this.path}/list`,
+      auth,
+      this.getDistinctRoomIds
+    );
+
+    this.router.get(
       `${this.path}/latest`,
       auth,
       this.getLatestReadingsFromAllRooms
@@ -49,9 +55,9 @@ class RoomController implements Controller {
     );
 
     this.router.delete(
-      `${this.path}/:id`,
+      `${this.path}/:id/all`,
       auth,
-      this.deleteElementFromRoom
+      this.deleteRoom
     );
 
     this.router.delete(
@@ -230,7 +236,20 @@ class RoomController implements Controller {
     }
   };
 
-  private deleteElementFromRoom = async (
+  private getDistinctRoomIds = async (
+    request: Request,
+    response: Response,
+    next: NextFunction
+  ) => {
+    try {
+      const roomIds = await this.roomService.getDistinctRoomIds();
+      response.status(200).json(roomIds);
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  private deleteRoom = async (
     request: Request,
     response: Response,
     next: NextFunction
@@ -244,11 +263,11 @@ class RoomController implements Controller {
       await this.roomService.deleteByRoomId(roomIdNum);
       response
         .status(200)
-        .json({ message: `Data for room ${roomIdNum} deleted.` });
+        .json({ message: `Room ${roomIdNum} and all its data deleted.` });
     } catch (error) {
       next(error);
     }
-  }
+  };
 
   private debugRoomData = async (
     request: Request,

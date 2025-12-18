@@ -17,6 +17,23 @@ interface CurrentStateProps {
 }
 
 const CurrentState: React.FC<CurrentStateProps> = ({ data }) => {
+  // Walidacja zakresu
+  const isTemperatureValid = data.temperature >= 15 && data.temperature <= 40;
+  const isHumidityValid = data.humidity >= 30 && data.humidity <= 70;
+  const isBrightnessValid = data.brightness >= 0 && data.brightness <= 100;
+
+  const temperatureDisplay = isTemperatureValid 
+    ? `${data.temperature}°C`
+    : `${data.temperature}°C (19°C)`;
+  
+  const humidityDisplay = isHumidityValid
+    ? `${data.humidity}%`
+    : `${data.humidity}% (50%)`;
+  
+  const brightnessDisplay = isBrightnessValid
+    ? `${data.brightness}%`
+    : `${data.brightness}% (15%)`;
+
   return (
     <Box
       sx={{
@@ -40,9 +57,12 @@ const CurrentState: React.FC<CurrentStateProps> = ({ data }) => {
           display="flex"
           alignItems="center"
           gap={1}
+          sx={{
+            color: isTemperatureValid ? "#ffffff" : "#ff6b6b",
+          }}
         >
           <DeviceThermostatIcon />
-          <span>{data.temperature}</span> &deg;C
+          <span>{temperatureDisplay}</span>
         </Typography>
         <Typography
           variant="h6"
@@ -50,9 +70,12 @@ const CurrentState: React.FC<CurrentStateProps> = ({ data }) => {
           display="flex"
           alignItems="center"
           gap={1}
+          sx={{
+            color: isBrightnessValid ? "#ffffff" : "#ff6b6b",
+          }}
         >
           <LightbulbIcon />
-          <span>{data.brightness}</span> %
+          <span>{brightnessDisplay}</span>
         </Typography>
         <Typography
           variant="h6"
@@ -60,9 +83,12 @@ const CurrentState: React.FC<CurrentStateProps> = ({ data }) => {
           display="flex"
           alignItems="center"
           gap={1}
+          sx={{
+            color: isHumidityValid ? "#ffffff" : "#ff6b6b",
+          }}
         >
           <OpacityIcon />
-          <span>{data.humidity}</span>%
+          <span>{humidityDisplay}</span>
         </Typography>
       </Stack>
     </Box>

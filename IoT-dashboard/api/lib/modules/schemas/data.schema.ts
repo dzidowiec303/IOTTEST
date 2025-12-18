@@ -6,7 +6,7 @@ export const RoomSchema: Schema = new Schema({
     brightness: { type: Number, required: true },
     humidity: { type: Number, required: true },
     roomId: { type: Number, required: true },
-    userId: { type: String, required: true },
+    userId: { type: Schema.Types.ObjectId, ref: 'User_JS', required: true },
     readingDate: { type: Date, default: Date.now }
 });
 

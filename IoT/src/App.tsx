@@ -1,9 +1,8 @@
 import { useState, useEffect } from "react";
 import CurrentState from "./components/CurrentState";
-import Charts from "./components/Charts";
-import ChartsMain from "./components/ChartsMain";
-import { Typography, Box, Stack, Paper } from "@mui/material";
-
+import { Typography, Box, Stack, Paper, IconButton } from "@mui/material";
+import AddIcon from "@mui/icons-material/Add";
+import DeleteIcon from "@mui/icons-material/Delete";
 import UserInput from "./components/UserInput";
 import UserDelete from "./components/UserDelete";
 
@@ -21,8 +20,7 @@ function App() {
   const [latestDataList, setLatestDataList] = useState<LatestDataType[]>([]);
   const [loadingLatest, setLoadingLatest] = useState(false);
   const [error, setError] = useState<string | null>(null);
-
-  const roomIds = Array.from({ length: 17 }, (_, i) => i);
+  const roomIds = Array.from({ length: 22 }, (_, i) => i);
 
   const [roomAllData, setRoomAllData] = useState<LatestDataType[]>([]);
   const [loadingAllData, setLoadingAllData] = useState(false);
@@ -32,6 +30,8 @@ function App() {
   );
 
   const [refreshTrigger, setRefreshTrigger] = useState(0);
+  const [isAddingNewRoom, setIsAddingNewRoom] = useState(false);
+  const [newRoomId, setNewRoomId] = useState<number | "">("");
 
   function hasBigJump(data: LatestDataType[]): boolean {
     for (let i = 1; i < data.length; i++) {
@@ -175,150 +175,268 @@ function App() {
   return (
     <Box sx={{ padding: 4 }}>
       <Typography variant="h4" gutterBottom>
-        Aktualny stan pokojów
+        Aktualny stan pokojów (max 22)
       </Typography>
 
       {loadingLatest && <Typography>Ładowanie danych...</Typography>}
       {error && <Typography color="error">Błąd: {error}</Typography>}
 
       <Stack direction="row" spacing={4}>
-        <Box sx={{ flex: 1, maxHeight: "50vh", overflowY: "auto" }}>
+        <Box sx={{ flex: 1 }}>
           <Stack spacing={2}>
-            {roomIds.map((id) => {
-              const roomData = latestDataList.find((d) => d.roomId === id);
-              return (
-                <Paper
-                  key={id}
-                  onClick={() => setSelectedRoomId(id)}
-                  sx={{
-                    padding: 2,
-                    cursor: "pointer",
-                    backgroundColor: roomsWarning[id]
-                      ? "#d32f2f"
-                      : id === selectedRoomId
-                      ? "#1976d2"
-                      : "#333333",
-                    color: "white",
-                    transition: "background-color 0.3s ease",
-                    boxShadow:
-                      id === selectedRoomId
-                        ? "0 0 8px 2px rgba(25, 118, 210, 0.7)"
-                        : "none",
-                    "&:hover": {
-                      backgroundColor: roomsWarning[id]
-                        ? "#b71c1c"
-                        : id === selectedRoomId
-                        ? "#1565c0"
-                        : "#444444",
-                    },
+            <Box sx={{ maxHeight: "50vh", overflowY: "auto" }}>
+              <Stack spacing={2}>
+                {loadingLatest ? (
+                  <Typography>Ładowanie pokojów...</Typography>
+                ) : latestDataList.length === 0 ? (
+                  <Typography color="text.secondary">Brak pokojów z danymi</Typography>
+                ) : (
+                  latestDataList.map((roomData) => {
+                    const id = roomData.roomId;
+                    const handleDeleteRoom = async (e: React.MouseEvent) => {
+                      e.stopPropagation();
+                      if (window.confirm(`Czy na pewno chcesz usunąć pokój ${id} i wszystkie jego dane?`)) {
+                        try {
+                          const res = await fetch(
+                            `http://localhost:3100/api/room/${id}/all`,
+                            {
+                              method: "DELETE",
+                              headers: {
+                                "x-access-token": localStorage.getItem("token") || "",
+                              },
+                            }
+                          );
+                          if (!res.ok) throw new Error(`HTTP error: ${res.status}`);
+                          if (selectedRoomId === id) {
+                            setSelectedRoomId(null);
+                          }
+                          setRefreshTrigger(t => t + 1);
+                        } catch (e: any) {
+                          alert("Błąd podczas usuwania pokoju: " + e.message);
+                        }
+                      }
+                    };
+
+                    return (
+                      <Paper
+                        key={id}
+                        sx={{
+                          padding: 2,
+                          backgroundColor: roomsWarning[id]
+                            ? "#6a1b9a"
+                            : id === selectedRoomId
+                            ? "#2e7d32"
+                            : "#333333",
+                          color: "white",
+                          transition: "background-color 0.3s ease",
+                          boxShadow:
+                            id === selectedRoomId
+                              ? "0 0 8px 2px rgba(46, 125, 50, 0.7)"
+                              : "none",
+                          "&:hover": {
+                            backgroundColor: roomsWarning[id]
+                              ? "#4a148c"
+                              : id === selectedRoomId
+                              ? "#1b5e20"
+                              : "#444444",
+                          },
+                          display: "flex",
+                          justifyContent: "space-between",
+                          alignItems: "start",
+                        }}
+                        elevation={id === selectedRoomId ? 8 : 1}
+                      >
+                        <Box 
+                          onClick={() => setSelectedRoomId(id)}
+                          sx={{ flex: 1, cursor: "pointer" }}
+                        >
+                          <Typography variant="h6">Pokój {id}</Typography>
+                          <Typography variant="body2">
+                            Temp: {roomData.temperature} °C, Wilgotność:{" "}
+                            {roomData.humidity}%
+                          </Typography>
+                        </Box>
+                        <IconButton
+                          size="small"
+                          onClick={handleDeleteRoom}
+                          sx={{ color: "rgba(255, 255, 255, 0.7)", "&:hover": { color: "white" } }}
+                        >
+                          <DeleteIcon fontSize="small" />
+                        </IconButton>
+                      </Paper>
+                    );
+                  })
+                )}
+                {isAddingNewRoom ? (
+                  <Paper
+                    sx={{
+                      padding: 2,
+                      backgroundColor: "#333333",
+                      color: "white",
+                    }}
+                    elevation={1}
+                  >
+                    <Typography variant="h6" gutterBottom>
+                      Wybierz numer pokoju
+                    </Typography>
+                    <input
+                      type="number"
+                      placeholder="Numer pokoju (0-21)"
+                      value={newRoomId === "" ? "" : newRoomId}
+                      onChange={(e) => setNewRoomId(e.target.value === "" ? "" : Number(e.target.value))}
+                      min={0}
+                      max={21}
+                      style={{
+                        padding: "8px",
+                        borderRadius: 4,
+                        border: "none",
+                        width: "100%",
+                        backgroundColor: "#444",
+                        color: "white",
+                        marginBottom: "8px",
+                      }}
+                    />
+                    <Stack direction="row" spacing={1}>
+                      <button
+                        onClick={() => {
+                          if (newRoomId !== "") {
+                            setSelectedRoomId(Number(newRoomId));
+                            setIsAddingNewRoom(false);
+                            setNewRoomId("");
+                          }
+                        }}
+                        style={{
+                          padding: "8px 16px",
+                          backgroundColor: "#1976d2",
+                          color: "white",
+                          border: "none",
+                          borderRadius: 4,
+                          cursor: "pointer",
+                          flex: 1,
+                        }}
+                      >
+                        OK
+                      </button>
+                      <button
+                        onClick={() => {
+                          setIsAddingNewRoom(false);
+                          setNewRoomId("");
+                        }}
+                        style={{
+                          padding: "8px 16px",
+                          backgroundColor: "#666",
+                          color: "white",
+                          border: "none",
+                          borderRadius: 4,
+                          cursor: "pointer",
+                          flex: 1,
+                        }}
+                      >
+                        Anuluj
+                      </button>
+                    </Stack>
+                  </Paper>
+                ) : (
+                  <Paper
+                    onClick={() => setIsAddingNewRoom(true)}
+                    sx={{
+                      padding: 2,
+                      cursor: "pointer",
+                      backgroundColor: "#444444",
+                      color: "white",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      transition: "background-color 0.3s ease",
+                      "&:hover": {
+                        backgroundColor: "#555555",
+                      },
+                    }}
+                    elevation={1}
+                  >
+                    <AddIcon sx={{ mr: 1 }} />
+                    <Typography>Dodaj pokój</Typography>
+                  </Paper>
+                )}
+              </Stack>
+            </Box>
+
+            {selectedRoomId !== null && (
+              <>
+                {selectedLatestData && (
+                  <Box>
+                    <Typography variant="h5" gutterBottom>
+                      Szczegóły pokoju {selectedRoomId}
+                    </Typography>
+                    <CurrentState data={selectedLatestData} />
+                  </Box>
+                )}
+
+                <UserInput
+                  roomId={selectedRoomId}
+                  onSuccess={() => {
+                    alert("Dane dodane pomyślnie!");
+                    setRefreshTrigger(t => t + 1);
                   }}
-                  elevation={id === selectedRoomId ? 8 : 1}
-                >
-                  <Typography variant="h6">Pokój {id}</Typography>
-                  {roomData ? (
-                    <Typography variant="body2">
-                      Temp: {roomData.temperature} °C, Wilgotność:{" "}
-                      {roomData.humidity}%
-                    </Typography>
-                  ) : (
-                    <Typography variant="body2" color="text.secondary">
-                      Brak danych
-                    </Typography>
-                  )}
-                </Paper>
-              );
-            })}
+                />
+              </>
+            )}
           </Stack>
         </Box>
-        <Box sx={{ flex: 2 }}>
-          <Typography variant="h5" gutterBottom>
-            Szczegóły pokoju{" "}
-            {selectedRoomId !== null ? selectedRoomId : ""}
-          </Typography>
 
-          {selectedLatestData ? (
-            <>
-              <CurrentState data={selectedLatestData} />
-              <Box mt={4} sx={{ display: "flex", gap: 4 }}>
-                <Box sx={{ flex: 1 }}>
-                  <Typography variant="h5" gutterBottom>
-                    Wykres
-                  </Typography>
-                  <Charts roomId={selectedRoomId} />
-                </Box>
+        <Box sx={{ flex: 1, maxHeight: "70vh", overflowY: "auto" }}>
+          <Box
+            sx={{
+              backgroundColor: "#1e1e1e",
+              padding: 2,
+              borderRadius: 1,
+              color: "white",
+            }}
+          >
+            <Typography variant="h5" gutterBottom>
+              Wszystkie odczyty
+            </Typography>
+            {!selectedLatestData ? (
+              <Typography>Wybierz pokój, aby zobaczyć dane</Typography>
+            ) : loadingAllData ? (
+              <Typography>Ładowanie danych...</Typography>
+            ) : roomAllData.length === 0 ? (
+              <Typography>Brak danych</Typography>
+            ) : (
+              <ul style={{ paddingLeft: 16, margin: 0 }}>
+                {roomAllData.map((d, idx) => (
+                  <li key={idx}>
+                    {new Date(d.readingDate).toLocaleString()} | User: {typeof d.userId === 'object' && d.userId ? (d.userId as any).name : d.userId} | Temp{" "}
+                    {d.temperature}°C, Wilgotność {d.humidity}%, Jasność{" "}
+                    {d.brightness}%
+                  </li>
+                ))}
 
-                <Box
-                  sx={{
-                    flex: 1,
-                    maxHeight: "400px",
-                    overflowY: "auto",
-                    backgroundColor: "#1e1e1e",
-                    padding: 2,
-                    borderRadius: 1,
-                    color: "white",
-                  }}
-                >
-                  <Typography variant="h5" gutterBottom>
-                    Wszystkie odczyty
-                  </Typography>
-                  {loadingAllData ? (
-                    <Typography>Ładowanie danych...</Typography>
-                  ) : roomAllData.length === 0 ? (
-                    <Typography>Brak danych</Typography>
-                  ) : (
-                    <ul style={{ paddingLeft: 16, margin: 0 }}>
-                      {roomAllData.map((d, idx) => (
-                        <li key={idx}>
-                          {new Date(d.readingDate).toLocaleString()}: Temp{" "}
-                          {d.temperature}°C, Wilgotność {d.humidity}%, Jasność{" "}
-                          {d.brightness}%
-                        </li>
-                      ))}
-
-                      {diffs && (
-                        <li
-                          style={{
-                            marginTop: "10px",
-                            fontStyle: "italic",
-                            color: "#90caf9",
-                          }}
-                        >
-                          Największe różnice: Temp {diffs.temp}%, Wilgotność{" "}
-                          {diffs.humidity}%, Jasność {diffs.brightness}%
-                        </li>
-                      )}
-                    </ul>
-                  )}
-                </Box>
-              </Box>
-            </>
-          ) : (
-            <Typography>Wybierz pokój, aby zobaczyć dane</Typography>
-          )}
+                {diffs && (
+                  <li
+                    style={{
+                      marginTop: "10px",
+                      fontStyle: "italic",
+                      color: "#90caf9",
+                    }}
+                  >
+                    Największe różnice: Temp {diffs.temp}%, Wilgotność{" "}
+                    {diffs.humidity}%, Jasność {diffs.brightness}%
+                  </li>
+                )}
+              </ul>
+            )}
+          </Box>
         </Box>
       </Stack>
 
-      <Box mt={4} display="flex" gap={4} justifyContent="space-between">
-        <Box flex={1}>
-          <UserDelete
-            onDeleteSuccess={() => {
-              alert("Dane usunięte pomyślnie!");
-              setRefreshTrigger(t => t + 1);
-            }}
-          />
-        </Box>
-        <Box flex={1}>
-          <ChartsMain />
-        </Box>
-        <Box flex={1}>
-          <UserInput
-            roomId={9}
-            onSuccess={() => {
-              alert("Dane dodane pomyślnie!");
-              setRefreshTrigger(t => t + 1);
-            }}
-          />
-        </Box>
+      <Box mt={4}>
+        <UserDelete
+          onDeleteSuccess={() => {
+            alert("Dane usunięte pomyślnie!");
+            setRefreshTrigger(t => t + 1);
+          }}
+        />
       </Box>
     </Box>
   );
