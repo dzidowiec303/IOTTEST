@@ -27,7 +27,7 @@ export const auth = (
             return response.status(400).send("Invalid token.");
           }
           const user: IUser = decoded as IUser;
-          request.user = user; // teraz TS nie wyrzuci błędu
+          request.user = user;
           next();
         }
       );

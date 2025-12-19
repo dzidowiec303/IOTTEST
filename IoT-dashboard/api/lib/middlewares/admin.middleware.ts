@@ -10,7 +10,7 @@ export const admin = (request: Request, response: Response, next: NextFunction) 
             token = token.slice(7, token.length);
         }
         try {
-            jwt.verify(token, config.JwtSecret, (err, decoded) => {
+            jwt.verify(token, config.jwtSecret, (err, decoded) => {
                 if (err) {
                     return response.status(400).send('Invalid token.');
                 }

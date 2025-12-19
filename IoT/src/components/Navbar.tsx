@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import AppBar from "@mui/material/AppBar";
 import Box from "@mui/material/Box";
 import Toolbar from "@mui/material/Toolbar";
@@ -14,15 +14,30 @@ import HomeIcon from "@mui/icons-material/Home";
 import { isExpired } from "react-jwt";
 import { useNavigate } from "react-router-dom";
 
-import kiLogo from "../assets/ki.jpg";
-
 const pages = ["Rooms"];
 
 function Navbar() {
   const [anchorElNav, setAnchorElNav] = React.useState<null | HTMLElement>(
     null
   );
+  const [animeImage, setAnimeImage] = useState<string>("");
   const navigate = useNavigate();
+
+  useEffect(() => {
+    const fetchRandomAnime = async () => {
+      try {
+        const response = await fetch("https://api.waifu.im/search");
+        const data = await response.json();
+        if (data.images && data.images.length > 0) {
+          setAnimeImage(data.images[0].url);
+        }
+      } catch (error) {
+        console.error("Error fetching anime image:", error);
+      }
+    };
+
+    fetchRandomAnime();
+  }, []);
 
   const handleOpenNavMenu = (event: React.MouseEvent<HTMLElement>) => {
     setAnchorElNav(event.currentTarget);
@@ -125,11 +140,19 @@ function Navbar() {
             ) : (
               <></>
             )}
-            <img
-              src={kiLogo}
-              alt="Logo"
-              style={{ height: 40, width: "auto", borderRadius: 4 }}
-            />
+            {animeImage && (
+              <img
+                src={animeImage}
+                alt="Random anime"
+                style={{
+                  height: "4vh",
+                  width: "4vh",
+                  borderRadius: 4,
+                  objectFit: "cover",
+                  marginLeft: 8,
+                }}
+              />
+            )}
           </Box>
         </Toolbar>
       </Container>
