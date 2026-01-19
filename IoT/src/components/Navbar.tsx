@@ -10,17 +10,26 @@ import Container from "@mui/material/Container";
 import Button from "@mui/material/Button";
 import MenuItem from "@mui/material/MenuItem";
 import HomeIcon from "@mui/icons-material/Home";
+import SecurityIcon from "@mui/icons-material/Security";
 
 import { isExpired } from "react-jwt";
 import { useNavigate } from "react-router-dom";
+import { jwtDecode } from "jwt-decode";
 
-const pages = ["Rooms"];
+interface DecodedToken {
+  _id: string;
+  email: string;
+  isAdmin: boolean;
+}
+
+const pages = ["Rooms", "Charts"];
 
 function Navbar() {
   const [anchorElNav, setAnchorElNav] = React.useState<null | HTMLElement>(
     null
   );
   const [animeImage, setAnimeImage] = useState<string>("");
+  const [isAdmin, setIsAdmin] = useState(false);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -49,6 +58,20 @@ function Navbar() {
 
   const token = localStorage.getItem("token");
   const loggedIn = token !== null && !isExpired(token);
+
+  // Check if user is admin
+  useEffect(() => {
+    try {
+      if (loggedIn && token) {
+        const decoded = jwtDecode(token) as DecodedToken;
+        setIsAdmin(decoded.isAdmin === true);
+      } else {
+        setIsAdmin(false);
+      }
+    } catch (e) {
+      setIsAdmin(false);
+    }
+  }, [loggedIn, token]);
 
   const handleLogout = () => {
     localStorage.removeItem("token");
@@ -111,12 +134,27 @@ function Navbar() {
                   key={page}
                   onClick={() => {
                     handleCloseNavMenu();
-                    navigate("/dashboard");
+                    if (page === "Rooms") {
+                      navigate("/dashboard");
+                    } else if (page === "Charts") {
+                      navigate("/charts");
+                    }
                   }}
                 >
                   <Typography textAlign="center">{page}</Typography>
                 </MenuItem>
               ))}
+              {isAdmin && (
+                <MenuItem
+                  onClick={() => {
+                    handleCloseNavMenu();
+                    navigate("/admin");
+                  }}
+                >
+                  <SecurityIcon sx={{ mr: 1 }} />
+                  <Typography textAlign="center">Admin</Typography>
+                </MenuItem>
+              )}
             </Menu>
           </Box>
 
@@ -124,12 +162,34 @@ function Navbar() {
             {pages.map((page) => (
               <Button
                 key={page}
-                onClick={() => navigate("/dashboard")}
+                onClick={() => {
+                  if (page === "Rooms") {
+                    navigate("/dashboard");
+                  } else if (page === "Charts") {
+                    navigate("/charts");
+                  }
+                }}
                 sx={{ my: 2, color: "white", display: "block" }}
               >
                 {page}
               </Button>
             ))}
+            {isAdmin && (
+              <Button
+                onClick={() => navigate("/admin")}
+                sx={{
+                  my: 2,
+                  color: "white",
+                  display: "block",
+                  backgroundColor: "rgba(244, 67, 54, 0.2)",
+                  "&:hover": { backgroundColor: "rgba(244, 67, 54, 0.3)" },
+                  marginLeft: 1,
+                }}
+                startIcon={<SecurityIcon />}
+              >
+                Admin
+              </Button>
+            )}
           </Box>
 
           <Box sx={{ flexGrow: 0 }}>

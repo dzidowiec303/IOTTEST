@@ -18,13 +18,41 @@ class UserService {
 
     public async getByEmailOrName(name: string) {
         try {
-            const result = await UserModel.findOne({ $or: [{ email: name }, { name: name }] });
-            if (result) {
-                return result;
-            }
+            const result = await UserModel.findOne({ $or: [{ email: name }, { login: name }] });
+            return result;
         } catch (error) {
             console.error('Wystąpił błąd podczas pobierania danych:', error);
             throw new Error('Wystąpił błąd podczas pobierania danych');
+        }
+    }
+
+    public async getAll() {
+        try {
+            const result = await UserModel.find({}).select('-password');
+            return result;
+        } catch (error) {
+            console.error('Wystąpił błąd podczas pobierania użytkowników:', error);
+            throw new Error('Wystąpił błąd podczas pobierania użytkowników');
+        }
+    }
+
+    public async getById(id: string) {
+        try {
+            const result = await UserModel.findById(id).select('-password');
+            return result;
+        } catch (error) {
+            console.error('Wystąpił błąd podczas pobierania użytkownika:', error);
+            throw new Error('Wystąpił błąd podczas pobierania użytkownika');
+        }
+    }
+
+    public async deleteById(id: string) {
+        try {
+            const result = await UserModel.findByIdAndDelete(id);
+            return result;
+        } catch (error) {
+            console.error('Wystąpił błąd podczas usuwania użytkownika:', error);
+            throw new Error('Wystąpił błąd podczas usuwania użytkownika');
         }
     }
 }

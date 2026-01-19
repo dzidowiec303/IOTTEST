@@ -6,8 +6,9 @@ class TokenService {
     public async create(user: any) {
         const access = 'auth';
         const userData = {
-            userId: user.id,
-            name: user.email,
+            _id: user._id,
+            email: user.email,
+            name: user.name,
             role: user.role,
             isAdmin: user.isAdmin,
             access: access
@@ -22,7 +23,7 @@ class TokenService {
 
         try {
             const result = await new TokenModel({
-                userId: user.id,
+                userId: user._id,
                 type: 'authorization',
                 value,
                 createDate: new Date().getTime()

@@ -7,17 +7,37 @@ import {
   useLocation,
 } from "react-router-dom";
 import { isExpired } from "react-jwt";
+import { jwtDecode } from "jwt-decode";
 
 import App from "./App";
 import Navbar from "./components/Navbar";
 import Login from "./components/Login";
 import SignUpForm from "./components/SignUpForm";
+import ChartsPage from "./components/ChartsPage";
+import AdminPage from "./components/AdminPage";
+
+interface DecodedToken {
+  _id: string;
+  email: string;
+  isAdmin: boolean;
+}
 
 const AppContent: React.FC = () => {
   const token = localStorage.getItem("token");
   const location = useLocation();
 
   const isLoggedIn = token && !isExpired(token);
+
+  // Check if user is admin
+  const isAdmin = (): boolean => {
+    try {
+      if (!token) return false;
+      const decoded = jwtDecode(token) as DecodedToken;
+      return decoded.isAdmin === true;
+    } catch (e) {
+      return false;
+    }
+  };
 
   return (
     <>
@@ -38,6 +58,14 @@ const AppContent: React.FC = () => {
         <Route
           path="/dashboard"
           element={isLoggedIn ? <App /> : <Navigate replace to="/login" />}
+        />
+        <Route
+          path="/charts"
+          element={isLoggedIn ? <ChartsPage /> : <Navigate replace to="/login" />}
+        />
+        <Route
+          path="/admin"
+          element={isLoggedIn && isAdmin() ? <AdminPage /> : <Navigate replace to="/dashboard" />}
         />
         <Route
           path="/"

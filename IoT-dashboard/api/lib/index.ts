@@ -2,18 +2,21 @@ import App from "./app";
 import UserController from "./controllers/user.controller";
 import RoomController from "./controllers/data.controller";
 import IndexController from "./controllers/index.controller";
+import AuditController from "./controllers/audit.controller";
 
 import UserService from "./modules/services/user.service";
 import PasswordService from "./modules/services/password.service";
 import TokenService from "./modules/services/token.service";
 import { EmailService } from "./modules/services/email.service";
 import RoomService from "./modules/services/data.service";
+import AuditService from "./modules/services/audit.service";
 
 const userService = new UserService();
 const passwordService = new PasswordService();
 const tokenService = new TokenService();
 const emailService = new EmailService();
 const roomService = new RoomService();
+const auditService = new AuditService();
 
 import express from "express";
 import http from "http";
@@ -28,6 +31,7 @@ const io = new Server(server, {
 const app: App = new App([
     new UserController(userService, passwordService, tokenService, emailService),
     new RoomController(roomService),
+    new AuditController(auditService),
     new IndexController(io), // Must be last because it has wildcard path "/*"
 ]);
 
