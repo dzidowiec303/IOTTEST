@@ -267,6 +267,7 @@ function App() {
                     );
                   })
                 )}
+                
                 {isAddingNewRoom ? (
                   <Paper
                     sx={{
