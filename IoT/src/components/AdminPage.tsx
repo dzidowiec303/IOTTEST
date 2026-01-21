@@ -299,7 +299,7 @@ const AdminPage: React.FC = () => {
         </DialogTitle>
         <DialogContent sx={{ backgroundColor: "#1e1e1e", color: "white" }}>
           <DialogContentText sx={{ color: "#aaa" }}>
-            Czy na pewno chcesz usunąć użytkownika <strong>{userToDelete?.name}</strong>?
+            Czy na pewno chcesz usunąć użytkownika <strong>{userToDelete?.login}</strong>?
             Ta akcja nie może być cofnięta.
           </DialogContentText>
         </DialogContent>

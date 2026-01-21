@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import AppBar from "@mui/material/AppBar";
-import Box from "@mui/material/Box";
+import { Box } from "@mui/material";
 import Toolbar from "@mui/material/Toolbar";
 import IconButton from "@mui/material/IconButton";
 import Typography from "@mui/material/Typography";
@@ -11,6 +11,7 @@ import Button from "@mui/material/Button";
 import MenuItem from "@mui/material/MenuItem";
 import HomeIcon from "@mui/icons-material/Home";
 import SecurityIcon from "@mui/icons-material/Security";
+import SmartToyIcon from "@mui/icons-material/SmartToy";
 
 import { isExpired } from "react-jwt";
 import { useNavigate } from "react-router-dom";
@@ -28,25 +29,8 @@ function Navbar() {
   const [anchorElNav, setAnchorElNav] = React.useState<null | HTMLElement>(
     null
   );
-  const [animeImage, setAnimeImage] = useState<string>("");
   const [isAdmin, setIsAdmin] = useState(false);
   const navigate = useNavigate();
-
-  useEffect(() => {
-    const fetchRandomAnime = async () => {
-      try {
-        const response = await fetch("https://api.waifu.im/search");
-        const data = await response.json();
-        if (data.images && data.images.length > 0) {
-          setAnimeImage(data.images[0].url);
-        }
-      } catch (error) {
-        console.error("Error fetching anime image:", error);
-      }
-    };
-
-    fetchRandomAnime();
-  }, []);
 
   const handleOpenNavMenu = (event: React.MouseEvent<HTMLElement>) => {
     setAnchorElNav(event.currentTarget);
@@ -192,26 +176,14 @@ function Navbar() {
             )}
           </Box>
 
-          <Box sx={{ flexGrow: 0 }}>
+          <Box sx={{ flexGrow: 0, display: "flex", alignItems: "center", gap: 1 }}>
+            <SmartToyIcon sx={{ fontSize: 32, color: "#00bcd4" }} />
             {loggedIn ? (
               <Button color="inherit" onClick={handleLogout}>
                 Logout
               </Button>
             ) : (
               <></>
-            )}
-            {animeImage && (
-              <img
-                src={animeImage}
-                alt="Random anime"
-                style={{
-                  height: "4vh",
-                  width: "4vh",
-                  borderRadius: 4,
-                  objectFit: "cover",
-                  marginLeft: 8,
-                }}
-              />
             )}
           </Box>
         </Toolbar>

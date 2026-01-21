@@ -124,7 +124,7 @@ function App() {
     };
 
     fetchAllData();
-  }, [selectedRoomId]);
+  }, [selectedRoomId, refreshTrigger]);
 
   useEffect(() => {
     const fetchLatest = async () => {
@@ -406,7 +406,7 @@ function App() {
               <ul style={{ paddingLeft: 16, margin: 0 }}>
                 {roomAllData.map((d, idx) => (
                   <li key={idx}>
-                    {new Date(d.readingDate).toLocaleString()} | User: {typeof d.userId === 'object' && d.userId ? (d.userId as any).name : d.userId} | Temp{" "}
+                    {new Date(d.readingDate).toLocaleString()} | User: {typeof d.userId === 'object' && d.userId ? (d.userId as any).login : d.userId} | Temp{" "}
                     {d.temperature}°C, Wilgotność {d.humidity}%, Jasność{" "}
                     {d.brightness}%
                   </li>
