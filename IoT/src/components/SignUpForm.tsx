@@ -1,6 +1,5 @@
 import React, { useState, type ChangeEvent, type FormEvent } from "react";
 import { useNavigate } from "react-router-dom";
-import axios from "axios";
 import {
   TextField,
   Button,
@@ -49,31 +48,34 @@ const SignUpForm: React.FC = () => {
     return Object.keys(validationErrors).length === 0 ? null : validationErrors;
   };
 
-  const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     const validationErrors = validate();
     setErrors(validationErrors || {});
     if (validationErrors) return;
 
-    axios
-      .post("http://localhost:3100/api/user/create", {
-        name: account.username,
-        email: account.email,
-        password: account.password,
-      })
-      .then(() => {
-        navigate("/login");
-      })
-      .catch((error) => {
-        const errorMessages: Errors = {};
-        if (error.response?.data?.error) {
-          errorMessages.general = error.response.data.error;
-        } else {
-          errorMessages.general = "Something went wrong. Please try again.";
-        }
-        setErrors(errorMessages);
-        console.error(error);
+    try {
+      const response = await fetch("http://localhost:3100/api/user/create", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          login: account.username,
+          email: account.email,
+          password: account.password,
+        }),
       });
+
+      if (!response.ok) {
+        const data = await response.json();
+        setErrors({ general: data.error || "Registration failed" });
+        return;
+      }
+
+      navigate("/login");
+    } catch (error) {
+      setErrors({ general: "Network error" });
+      console.error(error);
+    }
   };
 
   const handleChange = (event: ChangeEvent<HTMLInputElement>) => {

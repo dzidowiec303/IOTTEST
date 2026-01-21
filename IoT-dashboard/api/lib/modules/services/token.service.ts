@@ -4,14 +4,12 @@ import { config } from '../../config';
 
 class TokenService {
     public async create(user: any) {
-        const access = 'auth';
         const userData = {
             _id: user._id,
             email: user.email,
-            name: user.name,
+            login: user.login,
             role: user.role,
             isAdmin: user.isAdmin,
-            access: access
         };
 
         const value = jwt.sign(
